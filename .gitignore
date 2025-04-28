@@ -2,6 +2,7 @@
 *.swp
 *~
 .venv/
+venv/
 /*.egg-info
 /lib/GitPython.egg-info
 cover/
@@ -14,3 +15,9 @@ nbproject
 .DS_Store
 /*egg-info
 /.tox
+/.vscode/
+.idea/
+.cache/
+.mypy_cache/
+.pytest_cache/
+monkeytype.sqlite3

@@ -10,50 +10,56 @@ GitPython Tutorial
 
 GitPython provides object model access to your git repository. This tutorial is composed of multiple sections, most of which explains a real-life usecase.
 
-All code presented here originated from `test_docs.py <https://github.com/gitpython-developers/GitPython/blob/master/git/test/test_docs.py>`_ to assure correctness. Knowing this should also allow you to more easily run the code for your own testing purposes, all you need is a developer installation of git-python.
+All code presented here originated from `test_docs.py <https://github.com/gitpython-developers/GitPython/blob/master/test/test_docs.py>`_ to assure correctness. Knowing this should also allow you to more easily run the code for your own testing purposes, all you need is a developer installation of git-python.
 
 Meet the Repo type
 ******************
 
 The first step is to create a :class:`git.Repo <git.repo.base.Repo>` object to represent your repository.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [1-test_init_repo_object]
     :end-before: # ![1-test_init_repo_object]
 
 In the above example, the directory ``self.rorepo.working_tree_dir`` equals ``/Users/mtrier/Development/git-python`` and is my working repository which contains the ``.git`` directory. You can also initialize GitPython with a *bare* repository.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [2-test_init_repo_object]
     :end-before: # ![2-test_init_repo_object]
 
 A repo object provides high-level access to your data, it allows you to create and delete heads, tags and remotes and access the configuration of the repository.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [3-test_init_repo_object]
     :end-before: # ![3-test_init_repo_object]
 
 Query the active branch, query untracked files or whether the repository data has been modified.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [4-test_init_repo_object]
     :end-before: # ![4-test_init_repo_object]
 
 Clone from existing repositories or initialize new empty ones.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [5-test_init_repo_object]
     :end-before: # ![5-test_init_repo_object]
 
 Archive the repository contents to a tar file.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [6-test_init_repo_object]
     :end-before: # ![6-test_init_repo_object]
 
@@ -64,57 +70,65 @@ And of course, there is much more you can do with this type, most of the followi
 
 Query relevant repository paths ...
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [7-test_init_repo_object]
     :end-before: # ![7-test_init_repo_object]
 
 :class:`Heads <git.refs.head.Head>` Heads are branches in git-speak. :class:`References <git.refs.reference.Reference>` are pointers to a specific commit or to other references. Heads and :class:`Tags <git.refs.tag.TagReference>` are a kind of references. GitPython allows you to query them rather intuitively.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [8-test_init_repo_object]
     :end-before: # ![8-test_init_repo_object]
 
 You can also create new heads ...
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [9-test_init_repo_object]
     :end-before: # ![9-test_init_repo_object]
 
 ... and tags ...
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [10-test_init_repo_object]
     :end-before: # ![10-test_init_repo_object]
 
 You can traverse down to :class:`git objects <git.objects.base.Object>` through references and other objects. Some objects like :class:`commits <git.objects.commit.Commit>` have additional meta-data to query.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [11-test_init_repo_object]
     :end-before: # ![11-test_init_repo_object]
 
 :class:`Remotes <git.remote.Remote>` allow to handle fetch, pull and push operations, while providing optional real-time progress information to :class:`progress delegates <git.util.RemoteProgress>`.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [12-test_init_repo_object]
     :end-before: # ![12-test_init_repo_object]
 
 The :class:`index <git.index.base.IndexFile>` is also called stage in git-speak. It is used to prepare new commits, and can be used to keep results of merge operations. Our index implementation allows to stream date into the index, which is useful for bare repositories that do not have a working tree.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [13-test_init_repo_object]
     :end-before: # ![13-test_init_repo_object]
 
 :class:`Submodules <git.objects.submodule.Submodule>` represent all aspects of git submodules, which allows you query all of their related information, and manipulate in various ways.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [14-test_init_repo_object]
     :end-before: # ![14-test_init_repo_object]
 
@@ -124,29 +138,33 @@ Examining References
 
 :class:`References <git.refs.reference.Reference>` are the tips of your commit graph from which you can easily examine the history of your project.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [1-test_references_and_objects]
     :end-before: # ![1-test_references_and_objects]
 
 :class:`Tags <git.refs.tag.TagReference>` are (usually immutable) references to a commit and/or a tag object.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [2-test_references_and_objects]
     :end-before: # ![2-test_references_and_objects]
 
 A :class:`symbolic reference <git.refs.symbolic.SymbolicReference>` is a special case of a reference as it points to another reference instead of a commit.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [3-test_references_and_objects]
     :end-before: # ![3-test_references_and_objects]
 
 Access the :class:`reflog <git.refs.log.RefLog>` easily.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [4-test_references_and_objects]
     :end-before: # ![4-test_references_and_objects]
 
@@ -154,22 +172,25 @@ Modifying References
 ********************
 You can easily create and delete :class:`reference types <git.refs.reference.Reference>` or modify where they point to.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [5-test_references_and_objects]
     :end-before: # ![5-test_references_and_objects]
 
 Create or delete :class:`tags <git.refs.tag.TagReference>` the same way except you may not change them afterwards.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [6-test_references_and_objects]
     :end-before: # ![6-test_references_and_objects]
 
 Change the :class:`symbolic reference <git.refs.symbolic.SymbolicReference>` to switch branches cheaply (without adjusting the index or the working tree).
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [7-test_references_and_objects]
     :end-before: # ![7-test_references_and_objects]
 
@@ -181,29 +202,33 @@ Git only knows 4 distinct object types being :class:`Blobs <git.objects.blob.Blo
 
 In GitPython, all objects can be accessed through their common base, can be compared and hashed. They are usually not instantiated directly, but through references or specialized repository functions.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [8-test_references_and_objects]
     :end-before: # ![8-test_references_and_objects]
 
 Common fields are ...
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [9-test_references_and_objects]
     :end-before: # ![9-test_references_and_objects]
 
 :class:`Index objects <git.objects.base.IndexObject>` are objects that can be put into git's index. These objects are trees, blobs and submodules which additionally know about their path in the file system as well as their mode.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [10-test_references_and_objects]
     :end-before: # ![10-test_references_and_objects]
 
 Access :class:`blob <git.objects.blob.Blob>` data (or any object data) using streams.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [11-test_references_and_objects]
     :end-before: # ![11-test_references_and_objects]
 
@@ -215,36 +240,41 @@ The Commit object
 
 Obtain commits at the specified revision
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [12-test_references_and_objects]
     :end-before: # ![12-test_references_and_objects]
 
 Iterate 50 commits, and if you need paging, you can specify a number of commits to skip.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [13-test_references_and_objects]
     :end-before: # ![13-test_references_and_objects]
 
 A commit object carries all sorts of meta-data
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [14-test_references_and_objects]
     :end-before: # ![14-test_references_and_objects]
 
 Note: date time is represented in a ``seconds since epoch`` format. Conversion to human readable form can be accomplished with the various `time module <http://docs.python.org/library/time.html>`_ methods.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [15-test_references_and_objects]
     :end-before: # ![15-test_references_and_objects]
 
 You can traverse a commit's ancestry by chaining calls to ``parents``
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [16-test_references_and_objects]
     :end-before: # ![16-test_references_and_objects]
 
@@ -255,43 +285,49 @@ The Tree object
 
 A :class:`tree <git.objects.tree.Tree>` records pointers to the contents of a directory. Let's say you want the root tree of the latest commit on the master branch
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [17-test_references_and_objects]
     :end-before: # ![17-test_references_and_objects]
 
 Once you have a tree, you can get its contents
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [18-test_references_and_objects]
     :end-before: # ![18-test_references_and_objects]
 
 It is useful to know that a tree behaves like a list with the ability to query entries by name
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [19-test_references_and_objects]
     :end-before: # ![19-test_references_and_objects]
 
 There is a convenience method that allows you to get a named sub-object from a tree with a syntax similar to how paths are written in a posix system
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [20-test_references_and_objects]
     :end-before: # ![20-test_references_and_objects]
 
 You can also get a commit's root tree directly from the repository
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [21-test_references_and_objects]
     :end-before: # ![21-test_references_and_objects]
 
 As trees allow direct access to their intermediate child entries only, use the traverse method to obtain an iterator to retrieve entries recursively
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [22-test_references_and_objects]
     :end-before: # ![22-test_references_and_objects]
 
@@ -302,15 +338,17 @@ The Index Object
 The git index is the stage containing changes to be written with the next commit or where merges finally have to take place. You may freely access and manipulate this information using the :class:`IndexFile <git.index.base.IndexFile>` object.
 Modify the index with ease
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [23-test_references_and_objects]
     :end-before: # ![23-test_references_and_objects]
 
 Create new indices from other trees or as result of a merge. Write that result to a new index file for later inspection.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [24-test_references_and_objects]
     :end-before: # ![24-test_references_and_objects]
 
@@ -319,15 +357,17 @@ Handling Remotes
 
 :class:`Remotes <git.remote.Remote>` are used as alias for a foreign repository to ease pushing to and fetching from them
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [25-test_references_and_objects]
     :end-before: # ![25-test_references_and_objects]
 
 You can easily access configuration information for a remote by accessing options as if they where attributes. The modification of remote configuration is more explicit though.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [26-test_references_and_objects]
     :end-before: # ![26-test_references_and_objects]
 
@@ -343,7 +383,9 @@ This one sets a custom script to be executed in place of `ssh`, and can be used 
     with repo.git.custom_environment(GIT_SSH=ssh_executable):
         repo.remotes.origin.fetch()
 
-Here's an example executable that can be used in place of the `ssh_executable` above::
+Here's an example executable that can be used in place of the `ssh_executable` above:
+
+.. code-block:: shell
 
     #!/bin/sh
     ID_RSA=/var/lib/openshift/5562b947ecdd5ce939000038/app-deployments/id_rsa
@@ -357,8 +399,9 @@ Submodule Handling
 ******************
 :class:`Submodules <git.objects.submodule.base.Submodule>` can be conveniently handled using the methods provided by GitPython, and as an added benefit, GitPython provides functionality which behave smarter and less error prone than its original c-git implementation, that is GitPython tries hard to keep your repository consistent when updating submodules recursively or adjusting the existing configuration.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [1-test_submodules]
     :end-before: # ![1-test_submodules]
 
@@ -381,15 +424,17 @@ Diffs can generally be obtained by subclasses of :class:`Diffable <git.diff.Diff
 
 Diffs can be made between the Index and Trees, Index and the working tree, trees and trees as well as trees and the working copy. If commits are involved, their tree will be used implicitly.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [27-test_references_and_objects]
     :end-before: # ![27-test_references_and_objects]
 
 The item returned is a DiffIndex which is essentially a list of Diff objects. It provides additional filtering to ease finding what you might be looking for.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [28-test_references_and_objects]
     :end-before: # ![28-test_references_and_objects]
 
@@ -411,15 +456,17 @@ Switching Branches
 ******************
 To switch between branches similar to ``git checkout``, you effectively need to point your HEAD symbolic reference to the new branch and reset your index and working copy to match. A simple manual way to do it is the following one
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [29-test_references_and_objects]
     :end-before: # ![29-test_references_and_objects]
 
 The previous approach would brutally overwrite the user's changes in the working copy and index though and is less sophisticated than a ``git-checkout``. The latter will generally prevent you from destroying your work. Use the safer approach as follows.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [30-test_references_and_objects]
     :end-before: # ![30-test_references_and_objects]
 
@@ -428,8 +475,9 @@ Initializing a repository
 
 In this example, we will initialize an empty repository, add an empty file to the index, and commit the change.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: def test_add_file_and_commit
     :end-before: # ![test_add_file_and_commit]
 
@@ -439,8 +487,9 @@ Using git directly
 ******************
 In case you are missing functionality as it has not been wrapped, you may conveniently use the :class:`git <git.cmd.Git>` command directly. It is owned by each repository instance.
 
-.. literalinclude:: ../../git/test/test_docs.py
+.. literalinclude:: ../../test/test_docs.py
     :language: python
+    :dedent: 8
     :start-after: # [31-test_references_and_objects]
     :end-before: # ![31-test_references_and_objects]
 

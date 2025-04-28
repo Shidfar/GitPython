@@ -19,20 +19,17 @@ import sys
 import threading
 from collections import OrderedDict
 from textwrap import dedent
+import warnings
 
 from git.compat import (
-    string_types,
     defenc,
     force_bytes,
-    PY3,
-    # just to satisfy flake8 on py3
-    unicode,
     safe_decode,
     is_posix,
     is_win,
 )
 from git.exc import CommandError
-from git.util import is_cygwin_git, cygpath, expand_path
+from git.util import is_cygwin_git, cygpath, expand_path, remove_password_if_present
 
 from .exc import (
     GitCommandError,
@@ -42,7 +39,6 @@ from .util import (
     LazyMixin,
     stream_copy,
 )
-
 
 execute_kwargs = {'istream', 'with_extended_output',
                   'with_exceptions', 'as_process', 'stdout_as_string',
@@ -63,7 +59,7 @@ __all__ = ('Git',)
 
 def handle_process_output(process, stdout_handler, stderr_handler,
                           finalizer=None, decode_streams=True):
-    """Registers for notifications to lean that process output is ready to read, and dispatches lines to
+    """Registers for notifications to learn that process output is ready to read, and dispatches lines to
     the respective line handlers.
     This function returns once the finalizer returns
 
@@ -78,7 +74,7 @@ def handle_process_output(process, stdout_handler, stderr_handler,
         Set it to False if `universal_newline == True` (then streams are in text-mode)
         or if decoding must happen later (i.e. for Diffs).
     """
-    # Use 2 "pupm" threads and wait for both to finish.
+    # Use 2 "pump" threads and wait for both to finish.
     def pump_stream(cmdline, name, stream, is_decode, handler):
         try:
             for line in stream:
@@ -87,8 +83,8 @@ def handle_process_output(process, stdout_handler, stderr_handler,
                         line = line.decode(defenc)
                     handler(line)
         except Exception as ex:
-            log.error("Pumping %r of cmd(%s) failed due to: %r", name, cmdline, ex)
-            raise CommandError(['<%s-pump>' % name] + cmdline, ex)
+            log.error("Pumping %r of cmd(%s) failed due to: %r", name, remove_password_if_present(cmdline), ex)
+            raise CommandError(['<%s-pump>' % name] + remove_password_if_present(cmdline), ex) from ex
         finally:
             stream.close()
 
@@ -211,22 +207,15 @@ class Git(LazyMixin):
 
         # test if the new git executable path is valid
 
-        if sys.version_info < (3,):
-            # - a GitCommandNotFound error is spawned by ourselves
-            # - a OSError is spawned if the git executable provided
-            #   cannot be executed for whatever reason
-            exceptions = (GitCommandNotFound, OSError)
-        else:
-            # - a GitCommandNotFound error is spawned by ourselves
-            # - a PermissionError is spawned if the git executable provided
-            #   cannot be executed for whatever reason
-            exceptions = (GitCommandNotFound, PermissionError)
+        # - a GitCommandNotFound error is spawned by ourselves
+        # - a PermissionError is spawned if the git executable provided
+        #   cannot be executed for whatever reason
 
         has_git = False
         try:
             cls().version()
             has_git = True
-        except exceptions:
+        except (GitCommandNotFound, PermissionError):
             pass
 
         # warn or raise exception if test failed
@@ -333,6 +322,9 @@ class Git(LazyMixin):
             but git stops liking them as it will escape the backslashes.
             Hence we undo the escaping just to be sure.
             """
+            url = os.path.expandvars(url)
+            if url.startswith('~'):
+                url = os.path.expanduser(url)
             url = url.replace("\\\\", "\\").replace("\\", "/")
 
         return url
@@ -365,8 +357,11 @@ class Git(LazyMixin):
                 proc.stderr.close()
 
             # did the process finish already so we have a return code ?
-            if proc.poll() is not None:
-                return
+            try:
+                if proc.poll() is not None:
+                    return
+            except OSError as ex:
+                log.info("Ignored error after process had died: %r", ex)
 
             # can be that nothing really exists anymore ...
             if os is None or getattr(os, 'kill', None) is None:
@@ -378,7 +373,6 @@ class Git(LazyMixin):
                 proc.wait()    # ensure process goes away
             except OSError as ex:
                 log.info("Ignored error after process had died: %r", ex)
-                pass  # ignore error when process already died
             except AttributeError:
                 # try windows
                 # for some reason, providing None for stdout/stderr still prints something. This is why
@@ -399,7 +393,7 @@ class Git(LazyMixin):
             :raise GitCommandError: if the return status is not 0"""
             if stderr is None:
                 stderr = b''
-            stderr = force_bytes(stderr)
+            stderr = force_bytes(data=stderr, encoding='utf-8')
 
             status = self.proc.wait()
 
@@ -412,7 +406,7 @@ class Git(LazyMixin):
             if status != 0:
                 errstr = read_all_from_possibly_closed_stream(self.proc.stderr)
                 log.debug('AutoInterrupt wait stderr: %r' % (errstr,))
-                raise GitCommandError(self.args, status, errstr)
+                raise GitCommandError(remove_password_if_present(self.args), status, errstr)
             # END status handling
             return status
     # END auto interrupt
@@ -501,8 +495,12 @@ class Git(LazyMixin):
             # END readline loop
             return out
 
+        # skipcq: PYL-E0301
         def __iter__(self):
             return self
+
+        def __next__(self):
+            return self.next()
 
         def next(self):
             line = self.readline()
@@ -641,7 +639,7 @@ class Git(LazyMixin):
 
         :param env:
             A dictionary of environment variables to be passed to `subprocess.Popen`.
-            
+
         :param max_chunk_size:
             Maximum number of bytes in one chunk of data passed to the output_stream in
             one invocation of write() method. If the given number is not positive then
@@ -685,8 +683,10 @@ class Git(LazyMixin):
         :note:
            If you add additional keyword arguments to the signature of this method,
            you must update the execute_kwargs tuple housed in this module."""
+        # Remove password for the command if present
+        redacted_command = remove_password_if_present(command)
         if self.GIT_PYTHON_TRACE and (self.GIT_PYTHON_TRACE != 'full' or as_process):
-            log.info(' '.join(command))
+            log.info(' '.join(redacted_command))
 
         # Allow the user to have the command executed in their working dir.
         cwd = self._working_dir or os.getcwd()
@@ -707,7 +707,7 @@ class Git(LazyMixin):
         if is_win:
             cmd_not_found_exception = OSError
             if kill_after_timeout:
-                raise GitCommandError(command, '"kill_after_timeout" feature is not supported on Windows.')
+                raise GitCommandError(redacted_command, '"kill_after_timeout" feature is not supported on Windows.')
         else:
             if sys.version_info[0] > 2:
                 cmd_not_found_exception = FileNotFoundError  # NOQA # exists, flake8 unknown @UndefinedVariable
@@ -718,8 +718,11 @@ class Git(LazyMixin):
         stdout_sink = (PIPE
                        if with_stdout
                        else getattr(subprocess, 'DEVNULL', None) or open(os.devnull, 'wb'))
-        log.debug("Popen(%s, cwd=%s, universal_newlines=%s, shell=%s)",
-                  command, cwd, universal_newlines, shell)
+        istream_ok = "None"
+        if istream:
+            istream_ok = "<valid stream>"
+        log.debug("Popen(%s, cwd=%s, universal_newlines=%s, shell=%s, istream=%s)",
+                  redacted_command, cwd, universal_newlines, shell, istream_ok)
         try:
             proc = Popen(command,
                          env=env,
@@ -735,7 +738,7 @@ class Git(LazyMixin):
                          **subprocess_kwargs
                          )
         except cmd_not_found_exception as err:
-            raise GitCommandNotFound(command, err)
+            raise GitCommandNotFound(redacted_command, err) from err
 
         if as_process:
             return self.AutoInterrupt(proc, command)
@@ -775,6 +778,7 @@ class Git(LazyMixin):
         status = 0
         stdout_value = b''
         stderr_value = b''
+        newline = "\n" if universal_newlines else b"\n"
         try:
             if output_stream is None:
                 if kill_after_timeout:
@@ -784,20 +788,22 @@ class Git(LazyMixin):
                     watchdog.cancel()
                     if kill_check.isSet():
                         stderr_value = ('Timeout: the command "%s" did not complete in %d '
-                                        'secs.' % (" ".join(command), kill_after_timeout)).encode(defenc)
+                                        'secs.' % (" ".join(redacted_command), kill_after_timeout))
+                        if not universal_newlines:
+                            stderr_value = stderr_value.encode(defenc)
                 # strip trailing "\n"
-                if stdout_value.endswith(b"\n"):
+                if stdout_value.endswith(newline):
                     stdout_value = stdout_value[:-1]
-                if stderr_value.endswith(b"\n"):
+                if stderr_value.endswith(newline):
                     stderr_value = stderr_value[:-1]
                 status = proc.returncode
             else:
                 max_chunk_size = max_chunk_size if max_chunk_size and max_chunk_size > 0 else io.DEFAULT_BUFFER_SIZE
                 stream_copy(proc.stdout, output_stream, max_chunk_size)
-                stdout_value = output_stream
+                stdout_value = proc.stdout.read()
                 stderr_value = proc.stderr.read()
                 # strip trailing "\n"
-                if stderr_value.endswith(b"\n"):
+                if stderr_value.endswith(newline):
                     stderr_value = stderr_value[:-1]
                 status = proc.wait()
             # END stdout handling
@@ -806,7 +812,7 @@ class Git(LazyMixin):
             proc.stderr.close()
 
         if self.GIT_PYTHON_TRACE == 'full':
-            cmdstr = " ".join(command)
+            cmdstr = " ".join(redacted_command)
 
             def as_text(stdout_value):
                 return not output_stream and safe_decode(stdout_value) or '<OUTPUT_STREAM>'
@@ -822,7 +828,7 @@ class Git(LazyMixin):
         # END handle debug printing
 
         if with_exceptions and status != 0:
-            raise GitCommandError(command, status, stderr_value, stdout_value)
+            raise GitCommandError(redacted_command, status, stderr_value, stdout_value)
 
         if isinstance(stdout_value, bytes) and stdout_as_string:  # could also be output_stream
             stdout_value = safe_decode(stdout_value)
@@ -885,7 +891,7 @@ class Git(LazyMixin):
         if len(name) == 1:
             if value is True:
                 return ["-%s" % name]
-            elif type(value) is not bool:
+            elif value not in (False, None):
                 if split_single_char_options:
                     return ["-%s" % name, "%s" % value]
                 else:
@@ -893,14 +899,20 @@ class Git(LazyMixin):
         else:
             if value is True:
                 return ["--%s" % dashify(name)]
-            elif type(value) is not bool:
+            elif value is not False and value is not None:
                 return ["--%s=%s" % (dashify(name), value)]
         return []
 
     def transform_kwargs(self, split_single_char_options=True, **kwargs):
         """Transforms Python style kwargs into git command line options."""
+        # Python 3.6 preserves the order of kwargs and thus has a stable
+        # order. For older versions sort the kwargs by the key to get a stable
+        # order.
+        if sys.version_info[:2] < (3, 6):
+            kwargs = OrderedDict(sorted(kwargs.items(), key=lambda x: x[0]))
+            warnings.warn("Python 3.5 support is deprecated and will be removed 2021-09-05.\n" +
+                          "It does not preserve the order for key-word arguments and enforce lexical sorting instead.")
         args = []
-        kwargs = OrderedDict(sorted(kwargs.items(), key=lambda x: x[0]))
         for k, v in kwargs.items():
             if isinstance(v, (list, tuple)):
                 for value in v:
@@ -912,18 +924,12 @@ class Git(LazyMixin):
     @classmethod
     def __unpack_args(cls, arg_list):
         if not isinstance(arg_list, (list, tuple)):
-            # This is just required for unicode conversion, as subprocess can't handle it
-            # However, in any other case, passing strings (usually utf-8 encoded) is totally fine
-            if not PY3 and isinstance(arg_list, unicode):
-                return [arg_list.encode(defenc)]
             return [str(arg_list)]
 
         outlist = []
         for arg in arg_list:
             if isinstance(arg_list, (list, tuple)):
                 outlist.extend(cls.__unpack_args(arg))
-            elif not PY3 and isinstance(arg_list, unicode):
-                outlist.append(arg_list.encode(defenc))
             # END recursion
             else:
                 outlist.append(str(arg))
@@ -991,9 +997,9 @@ class Git(LazyMixin):
         else:
             try:
                 index = ext_args.index(insert_after_this_arg)
-            except ValueError:
+            except ValueError as err:
                 raise ValueError("Couldn't find argument '%s' in args %s to insert cmd options after"
-                                 % (insert_after_this_arg, str(ext_args)))
+                                 % (insert_after_this_arg, str(ext_args))) from err
             # end handle error
             args = ext_args[:index + 1] + opt_args + ext_args[index + 1:]
         # end handle opts_kwargs
@@ -1041,7 +1047,7 @@ class Git(LazyMixin):
         if isinstance(ref, bytes):
             # Assume 40 bytes hexsha - bin-to-ascii for some reason returns bytes, not text
             refstr = ref.decode('ascii')
-        elif not isinstance(ref, string_types):
+        elif not isinstance(ref, str):
             refstr = str(ref)               # could be ref-object
 
         if not refstr.endswith("\n"):
